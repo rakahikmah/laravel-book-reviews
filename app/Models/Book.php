@@ -28,21 +28,17 @@ class Book extends Model
 
     public function scopePopular(Builder $query, $from = null, $to = null)
     {
-        return $query->withCount([
-            'reviews' => fn(Builder $q) => $this->dateRangeFilter($q, $from, $to)
-        ])->orderBy('reviews_count', 'desc');
+        return $query->withReviewCount()->orderBy('reviews_count', 'desc');
     }
 
     public function scopeHighestRated(Builder $query, $from = null, $to = null)
     {
-        return $query->withAvg([
-            'reviews' => fn(Builder $q) => $this->dateRangeFilter($q, $from, $to)
-        ], 'rating')->orderBy('reviews_avg_rating', 'desc');
+        return $query->withAvgRating()->orderBy('reviews_avg_rating', 'desc');
     }
 
     public function scopeMinReviews(Builder $query, int $min)
     {
-        return $query->withCount('reviews')->having('reviews_count', '>=', $min);
+        return $query->having('reviews_count', '>=', $min);
     }
 
     private function dateRangeFilter(Builder $query, $from = null, $to = null)
@@ -95,5 +91,33 @@ class Book extends Model
         return $query->highestRated(now()->subMonths(6), now())
             ->popular(now()->subMonths(6), now())
             ->minReviews(5);
+    }
+
+    public function scopeWithReviewCount(Builder $query, $from = null, $to = null)
+    {
+        return $query->withCount([
+            'reviews' => fn(Builder $q) => $this->dateRangeFilter($q, $from, $to)
+        ]);
+    }
+
+    public function scopeWithAvgRating(Builder $query, $from = null, $to = null)
+    {
+        return $query->withAvg([
+            'reviews' => fn(Builder $q) => $this->dateRangeFilter($q, $from, $to)
+        ], 'rating');
+    }
+
+    protected static function booted()
+    {
+        parent::boot();
+        static::updated(function (Book $book) {
+            if ($book->isDirty(['title', 'created_at'])) {
+                cache()->forget('book:' . $book->id);
+            }
+        });
+
+        static::deleted(function (Book $book) {
+            cache()->forget('book:' . $book->id);
+        });
     }
 }

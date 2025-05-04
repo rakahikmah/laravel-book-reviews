@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class BookController extends Controller
 {
@@ -12,22 +13,30 @@ class BookController extends Controller
      */
     public function index(Request $request)
     {
+        // 
         $title = $request->input('title');
         $filter = $request->input('filter', '');
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 5);
+        $page = $request->input('page', 1); // Menambahkan parameter page
 
         $books = Book::when(
             $title,
             fn($query, $title) => $query->title($title)
         );
+        
+
         $books = match ($filter) {
             'popular_last_month' => $books->popularLastMonth(),
             'popular_last_6months' => $books->popularLast6Months(),
             'highest_rated_last_month' => $books->highestRatedLastMonth(),
             'highest_rated_last_6months' => $books->highestRatedLast6Months(),
-            default => $books->latest()
+            default => $books->latest()->withAvgRating()->withReviewCount(),
         };
-        $books = $books->paginate($perPage);
+
+        // Menambahkan page ke dalam cache key untuk memisahkan cache berdasarkan halaman
+        $cacheKey = 'books:' . $filter . ':' . $title . ':page:' . $page;
+
+        $books = cache()->remember($cacheKey, 3600, fn() => $books->paginate($perPage));
 
         return view('books.index', ['books' => $books]);
     }
@@ -35,9 +44,9 @@ class BookController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Book $book)
     {
-        //
+      
     }
 
     /**
@@ -51,10 +60,23 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
-        //
+
+        $cacheKey = 'book:' . $id;
+
+        $book = cache()->remember(
+            $cacheKey,
+            3600,
+            fn() =>
+            Book::with([
+                'reviews' => fn($query) => $query->latest()
+            ])->withAvgRating()->withReviewCount()->findOrFail($id)
+        );
+
+        return view('books.show',['book'=> $book]);
     }
+
 
     /**
      * Show the form for editing the specified resource.
