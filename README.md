@@ -32,9 +32,8 @@ Hallo, kali ini saya ingin membagikan sharing terkait dasar project dan fundamen
 - ⭐ Sistem rating buku
 - ⏱️ Rate limiting untuk stabilitas API
 
-## Prasyarat
-- Docker & Docker Compose
-- Composer
+## Opsional
+- Docker & Docker Compose (Ready)
 
 
 Cara Penggunaan
@@ -66,11 +65,83 @@ Teknologi
 
 *   PHP 8.x
 *   Laravel 12
-*   Docker
+*   Docker (Opsional)
 *   MySQL
 *   Redis (Cache)
+*   Xampp/Lampp/Lamp
 
-Pembelajaran
+Tahap Instalasi
+==========
+
+# Panduan Memulai Install Laravel
+
+Langkah-langkah berikut menjelaskan cara untuk memulai proyek Laravel yang baru saja dikloning dari repositori Git.
+
+## Clone Repositori
+Klon proyek Laravel dari repositori Git menggunakan perintah berikut:
+
+```bash
+git clone <URL_REPOSITORI>
+```
+
+Ganti `<URL_REPOSITORI>` dengan URL repositori proyek Anda.
+
+## Masuk ke Direktori Proyek
+Pindah ke direktori proyek yang baru saja dikloning:
+
+```bash
+cd <NAMA_FOLDER_PROYEK>
+```
+
+## Instal Dependensi Composer
+Jalankan perintah berikut untuk menginstal semua dependensi PHP yang diperlukan:
+
+```bash
+composer install
+```
+
+## Salin File Konfigurasi
+Salin file `.env.example` menjadi `.env` untuk konfigurasi lingkungan:
+
+```bash
+cp .env.example .env
+```
+
+Kemudian, sesuaikan pengaturan di file `.env`, seperti koneksi database (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+
+## Generate Application Key
+Buat kunci aplikasi Laravel dengan perintah:
+
+```bash
+php artisan key:generate
+```
+
+## Jalankan Migrasi Database
+Jalankan migrasi untuk membuat tabel di database:
+
+```bash
+php artisan migrate
+```
+
+Jalankan juga:
+
+```bash
+php artisan db:seed
+```
+
+## Jalankan Server Pengembangan
+Mulai server pengembangan Laravel dengan perintah:
+
+```bash
+php artisan serve
+```
+
+Secara default, aplikasi akan berjalan di [http://localhost:8000](http://localhost:8000).
+
+
+
+
+## Pembelajaran
 ============
 
 Proyek ini cocok untuk mempelajari:
@@ -93,3 +164,5 @@ Lisensi
 ========
 
 MIT License
+
+
